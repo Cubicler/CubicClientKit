@@ -17,13 +17,13 @@ CubicClientKit is a lightweight npm library that allows frontend apps to call AI
 ## Installation
 
 ```bash
-npm install cubic-client-kit
+npm install @cubicler/cubicclientkit
 ```
 
 ## Quick Start
 
 ```typescript
-import { CubicClient } from 'cubic-client-kit';
+import { CubicClient } from '@cubicler/cubicclientkit';
 
 // Create client instance
 const client = new CubicClient({
@@ -130,7 +130,7 @@ interface HealthStatus {
 ### Creating a Client
 
 ```typescript
-import { CubicClient } from 'cubic-client-kit';
+import { CubicClient } from '@cubicler/cubicclientkit';
 
 // Basic client setup
 const client = new CubicClient({
@@ -216,7 +216,7 @@ console.log('Services:', health.services);
 ### Complete Example
 
 ```typescript
-import { CubicClient } from 'cubic-client-kit';
+import { CubicClient } from '@cubicler/cubicclientkit';
 
 async function main() {
   const client = new CubicClient({
