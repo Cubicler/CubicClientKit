@@ -1,6 +1,7 @@
 {
   "name": "@cubicler/cubicclientkit",
   "version": "1.0.0",
+  "type": "module",
   "description": "A TypeScript client SDK for the Cubicler ecosystem",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -17,7 +18,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -43,9 +45,10 @@
     "access": "public"
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^8.54.0",
     "tsup": "^8.0.0",
