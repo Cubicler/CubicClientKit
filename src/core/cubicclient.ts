@@ -32,11 +32,12 @@ export class CubicClient {
 
     // Configure retry logic if specified
     if (options.retry && options.retry > 0) {
+      const maxRetries = options.retry;
       this.httpClient.interceptors.response.use(
         (response) => response,
         async (error) => {
           const config = error.config;
-          if (!config || config.__retryCount >= options.retry!) {
+          if (!config || config.__retryCount >= maxRetries) {
             return Promise.reject(error);
           }
 
@@ -63,19 +64,19 @@ export class CubicClient {
   /**
    * Call the default AI agent
    * @param messages Array of messages or single message
-   * @returns Promise that resolves to the agent's response message
+   * @returns Promise that resolves to the agent's response content
    */
   async call(messages: Message[] | Message): Promise<string> {
     const requestPayload = this.prepareCallRequest(messages);
-    const response: AxiosResponse<CallResponse> = await this.httpClient.post('/call', requestPayload);
-    return response.data.message;
+    const response: AxiosResponse<CallResponse> = await this.httpClient.post('/dispatch', requestPayload);
+    return response.data.content;
   }
 
   /**
    * Call a specific AI agent
    * @param agentName Name of the agent to call
    * @param messages Array of messages or single message
-   * @returns Promise that resolves to the agent's response message
+   * @returns Promise that resolves to the agent's response content
    */
   async callAgent(agentName: string, messages: Message[] | Message): Promise<string> {
     if (!agentName) {
@@ -84,10 +85,10 @@ export class CubicClient {
 
     const requestPayload = this.prepareCallRequest(messages);
     const response: AxiosResponse<CallResponse> = await this.httpClient.post(
-      `/call/${encodeURIComponent(agentName)}`,
+      `/dispatch/${encodeURIComponent(agentName)}`,
       requestPayload
     );
-    return response.data.message;
+    return response.data.content;
   }
 
   /**
@@ -118,6 +119,12 @@ export class CubicClient {
       if (!messages.sender || !messages.content) {
         throw new Error('Message must have both sender and content properties');
       }
+      if (!messages.sender.id) {
+        throw new Error('Message sender must have an id property');
+      }
+      if (!messages.type) {
+        throw new Error('Message must have a type property');
+      }
       return {
         messages: [messages],
       };
@@ -131,6 +138,12 @@ export class CubicClient {
     for (const message of messages) {
       if (!message.sender || !message.content) {
         throw new Error('Each message must have both sender and content properties');
+      }
+      if (!message.sender.id) {
+        throw new Error('Each message sender must have an id property');
+      }
+      if (!message.type) {
+        throw new Error('Each message must have a type property');
       }
     }
 

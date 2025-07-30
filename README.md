@@ -31,12 +31,17 @@ const client = new CubicClient({
 });
 
 // Call the default agent
-const response = await client.call({ sender: 'user', content: 'Hello, can you help me?' });
+const response = await client.call({ 
+  sender: { id: 'user_123', name: 'John' }, 
+  type: 'text',
+  content: 'Hello, can you help me?' 
+});
 console.log(response); // Agent's response message
 
 // Call a specific agent
 const weatherResponse = await client.callAgent('weather-agent', { 
-  sender: 'user', 
+  sender: { id: 'user_123', name: 'John' }, 
+  type: 'text',
   content: 'What is the weather today?' 
 });
 console.log(weatherResponse);
@@ -61,29 +66,29 @@ new CubicClient(options: CubicClientOptions)
 **Options:**
 
 - `baseUrl` (string, required): Base URL of the Cubicler API (e.g., '<http://localhost:1503>')
-- `timeout` (number, optional): Request timeout in milliseconds (default: 30000)
+- `timeout` (number, optional): Request timeout in milliseconds (default: 90000)
 - `retry` (number, optional): Number of retries for failed requests
 
 ### Methods
 
-#### `call(messages: Message[] | string): Promise<string>`
+#### `call(messages: Message[] | Message): Promise<string>`
 
 Call the default AI agent.
 
 **Parameters:**
 
-- `messages`: Array of message objects or a single message string
+- `messages`: Array of message objects or a single message object
 
 **Returns:** Promise that resolves to the agent's response message
 
-#### `callAgent(agentName: string, messages: Message[] | string): Promise<string>`
+#### `callAgent(agentName: string, messages: Message[] | Message): Promise<string>`
 
 Call a specific AI agent.
 
 **Parameters:**
 
 - `agentName`: Name of the agent to call
-- `messages`: Array of message objects or a single message string
+- `messages`: Array of message objects or a single message object
 
 **Returns:** Promise that resolves to the agent's response message
 
@@ -105,8 +110,23 @@ Check system health status.
 
 ```typescript
 interface Message {
-  sender: string;    // free-form string (user, assistant, agent name, etc.)
-  content: string;
+  sender: {
+    id: string;      // Unique identifier (e.g., "user_123", "telegram_456")
+    name?: string;   // Optional display name
+  };
+  type: "text";      // Message type (currently only "text" supported)
+  content: string;   // The actual message content
+  timestamp?: string; // Optional ISO 8601 timestamp
+}
+```
+
+### CubicClientOptions
+
+```typescript
+interface CubicClientOptions {
+  baseUrl: string;
+  timeout?: number;
+  retry?: number;
 }
 ```
 
@@ -123,6 +143,14 @@ interface HealthStatus {
     spec?: ServiceStatus;
   };
 }
+
+interface ServiceStatus {
+  status: 'healthy' | 'unhealthy';
+  error?: string;
+  count?: number;
+  agents?: string[];
+  providers?: string[];
+}
 ```
 
 ## Examples
@@ -131,6 +159,8 @@ interface HealthStatus {
 
 ```typescript
 import { CubicClient } from '@cubicler/cubicclientkit';
+// Or import specific types if needed
+import { CubicClient, type Message, type HealthStatus } from '@cubicler/cubicclientkit';
 
 // Basic client setup
 const client = new CubicClient({
@@ -149,14 +179,30 @@ const clientWithOptions = new CubicClient({
 
 ```typescript
 // Single message (Message object)
-const response = await client.call({ sender: 'user', content: 'Hello, can you help me?' });
+const response = await client.call({ 
+  sender: { id: 'user_123', name: 'John' }, 
+  type: 'text',
+  content: 'Hello, can you help me?' 
+});
 console.log(response); // Agent's response message
 
 // Multiple messages (conversation history)
 const messages = [
-  { sender: 'user', content: 'Hello' },
-  { sender: 'assistant', content: 'Hi! How can I help?' },
-  { sender: 'user', content: 'What is the weather like?' }
+  { 
+    sender: { id: 'user_123', name: 'John' }, 
+    type: 'text',
+    content: 'Hello' 
+  },
+  { 
+    sender: { id: 'assistant_1', name: 'Assistant' }, 
+    type: 'text',
+    content: 'Hi! How can I help?' 
+  },
+  { 
+    sender: { id: 'user_123', name: 'John' }, 
+    type: 'text',
+    content: 'What is the weather like?' 
+  }
 ];
 
 const response = await client.call(messages);
@@ -168,16 +214,29 @@ console.log(response); // Agent's response message
 ```typescript
 // Single message to specific agent
 const response = await client.callAgent('weather-agent', { 
-  sender: 'user', 
+  sender: { id: 'user_123', name: 'John' }, 
+  type: 'text',
   content: 'What is the weather in New York?' 
 });
 console.log(response);
 
 // Multiple messages to specific agent
 const messages = [
-  { sender: 'user', content: 'I need help with coding' },
-  { sender: 'coding-assistant', content: 'I can help! What language?' },
-  { sender: 'user', content: 'TypeScript please' }
+  { 
+    sender: { id: 'user_123', name: 'John' }, 
+    type: 'text',
+    content: 'I need help with coding' 
+  },
+  { 
+    sender: { id: 'coding-assistant', name: 'Code Helper' }, 
+    type: 'text',
+    content: 'I can help! What language?' 
+  },
+  { 
+    sender: { id: 'user_123', name: 'John' }, 
+    type: 'text',
+    content: 'TypeScript please' 
+  }
 ];
 
 const response = await client.callAgent('coding-assistant', messages);
@@ -221,7 +280,7 @@ import { CubicClient } from '@cubicler/cubicclientkit';
 async function main() {
   const client = new CubicClient({
     baseUrl: 'http://localhost:1503',
-    timeout: 15000,
+    timeout: 15000, // 15 seconds (default is 90 seconds)
     retry: 2
   });
 
@@ -238,7 +297,8 @@ async function main() {
 
     // Call default agent
     const defaultResponse = await client.call({ 
-      sender: 'user', 
+      sender: { id: 'user_123', name: 'John' }, 
+      type: 'text',
       content: 'Hello! How are you?' 
     });
     console.log('Default agent response:', defaultResponse);
@@ -247,7 +307,11 @@ async function main() {
     if (agents.includes('weather-agent')) {
       const weatherResponse = await client.callAgent(
         'weather-agent',
-        { sender: 'user', content: 'What is the weather forecast for tomorrow?' }
+        { 
+          sender: { id: 'user_123', name: 'John' }, 
+          type: 'text',
+          content: 'What is the weather forecast for tomorrow?' 
+        }
       );
       console.log('Weather agent response:', weatherResponse);
     }
@@ -266,7 +330,11 @@ The SDK lets errors bubble up to your application for maximum flexibility:
 
 ```typescript
 try {
-  const response = await client.call({ sender: 'user', content: 'Hello!' });
+  const response = await client.call({ 
+    sender: { id: 'user_123', name: 'John' }, 
+    type: 'text',
+    content: 'Hello!' 
+  });
   console.log(response);
 } catch (error) {
   if (error.response) {
@@ -297,16 +365,22 @@ npm test
 # Run tests in watch mode
 npm run test:watch
 
+# Run tests with coverage
+npm run test:coverage
+
 # Type check
 npm run type-check
 
 # Lint code
 npm run lint
+
+# Lint and fix code
+npm run lint:fix
 ```
 
 ## Browser Compatibility
 
-CubicClientKit works in modern browsers and Node.js environments. It uses ES2020 features and includes proper type definitions for TypeScript projects.
+CubicClientKit works in modern browsers and Node.js environments (Node.js 16+). It uses ES2020 features and includes proper type definitions for TypeScript projects.
 
 ## License
 

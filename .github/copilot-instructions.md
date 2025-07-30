@@ -45,8 +45,8 @@ root/
 
 ### Cubicler Endpoints to Implement
 
-- `POST /call` - Call the default AI agent
-- `POST /call/:agent` - Call a specific AI agent  
+- `POST /dispatch` - Call the default AI agent
+- `POST /dispatch/:agentId` - Call a specific AI agent  
 - `GET /agents` - List available agents
 - `GET /health` - Check system health
 
@@ -57,8 +57,13 @@ Agent calls use this message structure:
 {
   messages: [
     {
-      sender: string,    // free-form string (user, assistant, agent name, etc.)
-      content: string
+      sender: {
+        id: string,      // Unique identifier (e.g., "user_123", "telegram_456")
+        name?: string    // Optional display name
+      },
+      type: "text",      // Message type (currently only "text" supported)
+      content: string,   // The actual message content
+      timestamp?: string // Optional ISO 8601 timestamp
     }
   ]
 }
@@ -66,9 +71,21 @@ Agent calls use this message structure:
 
 ### Response Formats
 
-**Call endpoints** (`/call`, `/call/:agent`):
+**Call endpoints** (`/dispatch`, `/dispatch/:agentId`):
 ```typescript
-{ message: string }
+{
+  sender: {
+    id: string,        // Agent identifier (e.g., "gpt_4o")
+    name: string       // Agent display name
+  },
+  timestamp: string,   // ISO 8601 timestamp
+  type: "text",
+  content: string,     // The agent's response content
+  metadata: {
+    usedToken: number,
+    usedTools: number
+  }
+}
 ```
 
 **Agents endpoint** (`/agents`):
@@ -102,8 +119,8 @@ constructor(options: {
 ```
 
 ### Methods (return data only, not wrapper objects)
-- `call(messages)` → returns `string` (from response.message)
-- `callAgent(agentName, messages)` → returns `string` (from response.message)  
+- `call(messages)` → returns `string` (from response.content)
+- `callAgent(agentName, messages)` → returns `string` (from response.content)  
 - `getAgents()` → returns `string[]` (from response.availableAgents)
 - `getHealth()` → returns `HealthStatus` (full response object)
 

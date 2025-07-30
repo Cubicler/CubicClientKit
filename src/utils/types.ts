@@ -2,8 +2,13 @@
  * Message structure for agent calls
  */
 export interface Message {
-  sender: string;
-  content: string;
+  sender: {
+    id: string;      // Unique identifier (e.g., "user_123", "telegram_456")
+    name?: string;   // Optional display name
+  };
+  type: "text";      // Message type (currently only "text" supported)
+  content: string;   // The actual message content
+  timestamp?: string; // Optional ISO 8601 timestamp
 }
 
 /**
@@ -19,7 +24,17 @@ export interface CubicClientOptions {
  * Response from call endpoints
  */
 export interface CallResponse {
-  message: string;
+  sender: {
+    id: string;        // Agent identifier (e.g., "gpt_4o")
+    name: string;      // Agent display name
+  };
+  timestamp: string;   // ISO 8601 timestamp
+  type: "text";
+  content: string;     // The agent's response content
+  metadata: {
+    usedToken: number;
+    usedTools: number;
+  };
 }
 
 /**
